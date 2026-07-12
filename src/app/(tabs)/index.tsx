@@ -2,6 +2,8 @@ import { Text, View, StyleSheet, TextInput, Pressable, ScrollView} from "react-n
 import { SafeAreaView } from "react-native-safe-area-context";
 import {FontAwesome} from '@expo/vector-icons'
 import Chat from '../../components/Chat'
+
+const conversations = [{id: 1, title:'hello', date:'10/12/2025', cur_user:'Avneet', to_user:"Michael",last_message:"Did it work?"}]
 export default function Index(){
   return (
     <SafeAreaView style={styles.container}>
@@ -14,6 +16,9 @@ export default function Index(){
       <Text style = {{color:'white', fontSize: 35, alignSelf: 'flex-start', padding:15}}>Conversations</Text>
       <ScrollView contentContainerStyle={{ alignItems: 'center' }}>
         {/*Props for all conversations using conversation card */}
+        {conversations.map((c) => (
+          <Chat key = {c.id} id={c.id} title={c.title} date={c.date} cur_user={c.cur_user} to_user={c.to_user} last_message={c.last_message}/>
+        ))}
       </ScrollView>
       {/* Search for new users with no existing conversation */}
       <Pressable style={styles.fab} onPress={() => {console.log("Clicked")}}>
@@ -27,20 +32,21 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "black",
-    alignItems: "center",
     color:"white",
   },
   search: {
   flexDirection: 'row',
   alignItems: 'center',
+  alignSelf: 'center',
   borderWidth: 1,
   borderColor: 'white',
   borderRadius: 20,
   paddingHorizontal: 10,
   height: 35,
-  width:"90%",
-  backgroundColor:"rgba(40, 38, 38, 1)",
+  width: "90%",
+  backgroundColor: "rgba(40, 38, 38, 1)",
 },
+
 input: {
   flex: 1,
   color: 'white',
