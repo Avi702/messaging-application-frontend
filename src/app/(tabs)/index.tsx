@@ -3,7 +3,15 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import {FontAwesome} from '@expo/vector-icons'
 import Chat from '../../components/Chat'
 
-const conversations = [{id: 1, title:'hello', date:'10/12/2025', cur_user:'Avneet', to_user:"Michael",last_message:"Did it work?"}]
+const conversations = [{id: 1, date:'10/12/2025', cur_user:'Avneet', to_user:"Michael",last_message:"Did it work?"},
+                       {id: 2, date:'10/12/2025', cur_user:'Avneet', to_user:"Mohnish",last_message:"Bro I'm so lost"},
+                      {id: 3, date:'10/12/2025', cur_user:'Avneet', to_user:"Harry",last_message:"Wow, This is Sick!"},
+                    {id: 4, date:'10/12/2025', cur_user:'Avneet', to_user:"Michael",last_message:"Did it work?"},
+                  {id: 5, date:'10/12/2025', cur_user:'Avneet', to_user:"Michael",last_message:"Did it work?"},
+                {id: 6, date:'10/12/2025', cur_user:'Avneet', to_user:"Michael",last_message:"Did it work?"},
+              {id: 7, date:'10/12/2025', cur_user:'Avneet', to_user:"Michael",last_message:"Did it work?"},
+            {id: 8, date:'10/12/2025', cur_user:'Avneet', to_user:"Michael",last_message:"Did it work?"},
+            {id: 9, date:'10/12/2025', cur_user:'Avneet', to_user:"Michael",last_message:"Did it work?"}]
 export default function Index(){
   return (
     <SafeAreaView style={styles.container}>
@@ -17,7 +25,7 @@ export default function Index(){
       <ScrollView contentContainerStyle={{ alignItems: 'center' }}>
         {/*Props for all conversations using conversation card */}
         {conversations.map((c) => (
-          <Chat key = {c.id} id={c.id} title={c.title} date={c.date} cur_user={c.cur_user} to_user={c.to_user} last_message={c.last_message}/>
+          <Chat key = {c.id} id={c.id} date={c.date} cur_user={c.cur_user} to_user={c.to_user} last_message={c.last_message}/>
         ))}
       </ScrollView>
       {/* Search for new users with no existing conversation */}
