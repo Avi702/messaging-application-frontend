@@ -4,6 +4,9 @@ import {FontAwesome} from '@expo/vector-icons'
 import {useState} from 'react'
 import LogIn from "../../app/Authentication/LogIn"
 import ViewContent from "../../components/ViewContent"
+
+const information = [{}]
+
 export default function Profile(){
     const [setisUser, setUser] = useState(true)
     return(<>{setisUser && <><SafeAreaView style ={style.header}>
@@ -13,16 +16,16 @@ export default function Profile(){
                 <Text style ={{alignSelf: 'center', color:'white',fontSize:25,}}>Avneet</Text>
                 <Text style = {{alignSelf: 'center', color:'gray',fontSize:15,}}>I like football and soccer</Text>
     </SafeAreaView>
-        <ViewContent/></>}
+        <View style = {style.body}></View>{/*<ViewContent/>*/}</>}
     {!setisUser && <LogIn/>}</>)
 }
 
 
 const style = StyleSheet.create({
     header:{
-        flex: 1, justifyContent: 'flex-end', alignItems: 'center',
+        justifyContent: 'flex-end', alignItems: 'center',
         width:'100%',
-        height:'50%',
+        height:'30%',
         backgroundColor:'rgb(55, 50, 50)',
     },
     profile:{
@@ -33,4 +36,8 @@ const style = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     },
+    body:{
+        height:'70%',
+        backgroundColor:'black',
+    }
 })
