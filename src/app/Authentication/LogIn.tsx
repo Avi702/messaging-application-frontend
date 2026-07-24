@@ -5,6 +5,8 @@ import {useState} from 'react'
 import {useRouter} from 'expo-router'
 export default function LogIn(){
     const router = useRouter()
+    const [useName,setName] = useState('')
+    const [usePwd,setPwd] = useState('')
     return(<View style={style.container}>
         <Text style = {{color:'white',fontSize:36}}>Welcome Back!</Text>
         <View style={style.form}>
