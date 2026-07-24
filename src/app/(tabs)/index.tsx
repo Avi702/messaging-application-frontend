@@ -7,11 +7,11 @@ const conversations = [{id: 1, date:'10/12/2025', cur_user:'Avneet', to_user:"Mi
                        {id: 2, date:'10/12/2025', cur_user:'Avneet', to_user:"Mohnish",last_message:"Bro I'm so lost"},
                       {id: 3, date:'10/12/2025', cur_user:'Avneet', to_user:"Harry",last_message:"Wow, This is Sick!"},
                     {id: 4, date:'10/12/2025', cur_user:'Avneet', to_user:"Michael",last_message:"Did it work?"},
-                  {id: 5, date:'10/12/2025', cur_user:'Avneet', to_user:"Michael",last_message:"Did it work?"},
-                {id: 6, date:'10/12/2025', cur_user:'Avneet', to_user:"Michael",last_message:"Did it work?"},
-              {id: 7, date:'10/12/2025', cur_user:'Avneet', to_user:"Michael",last_message:"Did it work?"},
-            {id: 8, date:'10/12/2025', cur_user:'Avneet', to_user:"Michael",last_message:"Did it work?"},
-            {id: 9, date:'10/12/2025', cur_user:'Avneet', to_user:"Michael",last_message:"Did it work?"}]
+                  {id: 5, date:'10/12/2025', cur_user:'Avneet', to_user:"John",last_message:"Did it work?"},
+                {id: 6, date:'10/12/2025', cur_user:'Avneet', to_user:"Carlos",last_message:"Did it work?"},
+              {id: 7, date:'10/12/2025', cur_user:'Avneet', to_user:"Amanda",last_message:"Did it work?"},
+            {id: 8, date:'10/12/2025', cur_user:'Avneet', to_user:"Gio",last_message:"Did it work?"},
+            {id: 9, date:'10/12/2025', cur_user:'Avneet', to_user:"Khan",last_message:"Did it work?"}]
 export default function Index(){
   return (
     <SafeAreaView style={styles.container}>

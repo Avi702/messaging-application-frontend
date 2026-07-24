@@ -5,19 +5,45 @@ import {useState} from 'react'
 import LogIn from "../../app/Authentication/LogIn"
 import ViewContent from "../../components/ViewContent"
 
-const information = [{}]
 
-export default function Profile(){
-    const [setisUser, setUser] = useState(true)
-    return(<>{setisUser && <><SafeAreaView style ={style.header}>
+const information = [{id:1,name:'Avneet072',email:'avi@gmail.com',bio:'string',createdAt:'10/12/2025',lastOnline:10,isOnline:false}]
+
+export default function Profile() {
+  const [isUser, setIsUser] = useState(false);
+  const user = {id:1,name:'Avneet072',email:'avi@gmail.com',bio:'string',createdAt:'10/12/2025',lastOnline:10,isOnline:false}
+  return (
+    <>
+      {isUser ? (
+        <>
+          <SafeAreaView style={style.header}>
             <View style={style.profile}>
-                <Text style={{ color: 'white', fontSize: 30, alignSelf: 'center', justifyContent:'center'}}>A</Text>
+              <Text style={{ color: "white", fontSize: 30 }}>A</Text>
             </View>
-                <Text style ={{alignSelf: 'center', color:'white',fontSize:25,}}>Avneet</Text>
-                <Text style = {{alignSelf: 'center', color:'gray',fontSize:15,}}>I like football and soccer</Text>
-    </SafeAreaView>
-        <View style = {style.body}></View>{/*<ViewContent/>*/}</>}
-    {!setisUser && <LogIn/>}</>)
+
+            <Text style={{ alignSelf: "center", color: "white", fontSize: 25 }}>{user.name}</Text>
+            <Text style={{ alignSelf: "center", color: "gray", fontSize: 15 }}>{user.bio} </Text>
+          </SafeAreaView>
+
+          <View style={style.body} />
+
+          {information.map((c) => (
+            <ViewContent
+              key={c.id}
+              id={c.id}
+              name={c.name}
+              email={c.email}
+              bio={c.bio}
+              createdAt={c.createdAt}
+              lastOnline={c.lastOnline}
+              isOnline={c.isOnline}
+            />
+          ))}
+        </>
+      ) : (
+        <LogIn />
+      )}
+    </>
+  );
 }
 
 
