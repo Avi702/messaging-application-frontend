@@ -4,44 +4,39 @@ import {FontAwesome} from '@expo/vector-icons'
 import {useState} from 'react'
 import LogIn from "../../app/Authentication/LogIn"
 import ViewContent from "../../components/ViewContent"
+import {useAuth} from '../Authentication/AuthContext'
 
-
-const information = [{id:1,name:'Avneet072',email:'avi@gmail.com',bio:'string',createdAt:'10/12/2025',lastOnline:10,isOnline:false}]
 
 export default function Profile() {
-  const [isUser, setIsUser] = useState(false);
-  const user = {id:1,name:'Avneet072',email:'avi@gmail.com',bio:'string',createdAt:'10/12/2025',lastOnline:10,isOnline:false}
-  return (
-    <>
-      {isUser ? (
-        <>
+  const { user, isAuthenticated, logout } = useAuth()
+  if (!isAuthenticated){
+    return (<LogIn />)
+  }
+  return (<>
+   <Pressable style = {style.button} onPress={logout}><Text>Log Out</Text></Pressable>
           <SafeAreaView style={style.header}>
             <View style={style.profile}>
               <Text style={{ color: "white", fontSize: 30 }}>A</Text>
             </View>
 
-            <Text style={{ alignSelf: "center", color: "white", fontSize: 25 }}>{user.name}</Text>
+            <Text style={{ alignSelf: "center", color: "white", fontSize: 25 }}>{user.dsplayName}</Text>
             <Text style={{ alignSelf: "center", color: "gray", fontSize: 15 }}>{user.bio} </Text>
           </SafeAreaView>
 
           <View style={style.body} />
 
-          {information.map((c) => (
-            <ViewContent
-              key={c.id}
-              id={c.id}
-              name={c.name}
-              email={c.email}
-              bio={c.bio}
-              createdAt={c.createdAt}
-              lastOnline={c.lastOnline}
-              isOnline={c.isOnline}
-            />
-          ))}
-        </>
-      ) : (
-        <LogIn />
-      )}
+         {/* {isAuthenticated && user && (
+          <ViewContent
+            id={user._id}
+            name={user.displayName}
+            bio={user.bio}
+            createdAt={user.createdAt}
+            lastOnline={user.lastOnline}
+            isOnline={user.isOnline}
+          />
+          )}
+          */}
+         
     </>
   );
 }
@@ -65,5 +60,12 @@ const style = StyleSheet.create({
     body:{
         height:'70%',
         backgroundColor:'black',
-    }
+    },
+    button:{
+        padding:15,
+        backgroundColor:'red',
+        borderRadius:8,
+        width:'100%',
+        marginTop:15,
+    },
 })

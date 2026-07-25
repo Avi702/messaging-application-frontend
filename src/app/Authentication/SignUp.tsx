@@ -58,7 +58,7 @@ export default function SignUp(){
                     })
                 if(res.ok){
                     Alert.alert('Profile created!')
-                    router.push("../Authentication/LogIn")
+                    router.back()
                 }else{
                     const body = await res.json()
                     switch (body?.error?.code) {

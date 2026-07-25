@@ -1,21 +1,38 @@
-import { Text, View, StyleSheet, TextInput, Pressable, ScrollView} from "react-native";
+import { Text, Alert, View, StyleSheet, TextInput, Pressable, ScrollView} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {FontAwesome} from '@expo/vector-icons'
 import {useState} from 'react'
 import {useRouter} from 'expo-router'
+import * as SecureStore from 'expo-secure-store'
+import {useAuth} from '../Authentication/AuthContext'
 export default function LogIn(){
+    const {login} = useAuth()
     const router = useRouter()
-    const [useName,setName] = useState('')
+    const [useEmail,setEmail] = useState('')
     const [usePwd,setPwd] = useState('')
+    async function handleLogin(){
+        try{
+            await login(useEmail, usePwd)
+            router.replace('/(tabs)')
+        } catch (e) {
+            const code = e instanceof Error ? e.message : ''
+            if (code === 'USER_NOT_FOUND') Alert.alert('No account with that email')
+            else if (code === 'PASSWORD_INCORRECT') Alert.alert('Incorrect password')
+            else Alert.alert('Could not log in')
+        }
+
+    }
     return(<View style={style.container}>
         <Text style = {{color:'white',fontSize:36}}>Welcome Back!</Text>
         <View style={style.form}>
             <Text style={{ color: 'white', fontSize: 20, alignSelf:'center' }}>Email</Text>
-            <TextInput placeholder="you@example.com" style={style.input} />
+            <TextInput placeholder="you@example.com" placeholderTextColor="#888" autoCapitalize="none" keyboardType="email-address" value ={useEmail} onChangeText ={setEmail} style={style.input} />
 
             <Text style={{ color: 'white', fontSize: 20, alignSelf:'center' }}>Password</Text>
-            <TextInput placeholder="Password" secureTextEntry style={style.input} />
-            <Pressable style = {style.buttons}><Text style={{ color: 'white', fontSize: 15, alignSelf:'center' }}>Log In</Text></Pressable>
+            <TextInput placeholder="Password" placeholderTextColor="#888" value ={usePwd} onChangeText ={setPwd} secureTextEntry style={style.input} />
+            <Pressable style = {style.buttons} onPress={() => handleLogin()}>
+                <Text style={{ color: 'white', fontSize: 15, alignSelf:'center' }}>Log In</Text>
+            </Pressable>
             <Pressable style={style.buttons} onPress={() => router.push('/Authentication/SignUp')}>
                 <Text style={{ color: 'white', fontSize: 15, alignSelf:'center' }}>Sign Up</Text>
             </Pressable>
