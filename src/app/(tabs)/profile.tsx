@@ -1,41 +1,78 @@
-import { Text, View, StyleSheet, TextInput, Pressable, ScrollView} from "react-native";
+import { Text, View, StyleSheet, TextInput, Pressable, ScrollView, Alert} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {FontAwesome} from '@expo/vector-icons'
-import {useState} from 'react'
+import {useState, useEffect} from 'react'
 import LogIn from "../../app/Authentication/LogIn"
 import ViewContent from "../../components/ViewContent"
 import {useAuth} from '../Authentication/AuthContext'
 
+function formatDateTime(value: string){
+    if(!value){
+        return "—"
+    }
+    return new Date(value).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })
+}
 
 export default function Profile() {
-  const { user, isAuthenticated, logout } = useAuth()
-  if (!isAuthenticated){
+  const { user, isAuthenticated, logout, updateProfile } = useAuth()
+  const [isEdit,setEdit] = useState(false)
+  const [name,setName] = useState('')
+  const [bio,setBio] = useState('')
+
+  // keep the editable fields in sync with the logged in user
+  useEffect(()=>{
+    if(user){
+      setName(user.displayName)
+      setBio(user.bio)
+    }
+  },[user])
+
+  if (!isAuthenticated || !user){
     return (<LogIn />)
   }
+
+  async function handleEdit(){
+    if(isEdit){
+      // currently editing -> save before leaving edit mode
+      try{
+        await updateProfile(name, bio)
+      } catch {
+        Alert.alert('Could not update profile')
+        return
+      }
+    }
+    setEdit(prev => !prev)
+  }
   return (<>
-   <Pressable style = {style.button} onPress={logout}><Text>Log Out</Text></Pressable>
           <SafeAreaView style={style.header}>
             <View style={style.profile}>
-              <Text style={{ color: "white", fontSize: 30 }}>A</Text>
+              <Text style={{ color: "white", fontSize: 30 }}>{user?.displayName[0].toUpperCase()}</Text>
             </View>
 
-            <Text style={{ alignSelf: "center", color: "white", fontSize: 25 }}>{user.dsplayName}</Text>
-            <Text style={{ alignSelf: "center", color: "gray", fontSize: 15 }}>{user.bio} </Text>
+            <Text style={{ alignSelf: "center", color: "white", fontSize: 25 }}>{user?.displayName}</Text>
+            <Text style={{ alignSelf: "center", color: "gray", fontSize: 15 }}>Last Online: {formatDateTime(user?.lastOnline)} </Text>
           </SafeAreaView>
 
-          <View style={style.body} />
-
-         {/* {isAuthenticated && user && (
+          <ScrollView style={style.body} contentContainerStyle={style.bodyContent}>
+            {isAuthenticated && user && (
           <ViewContent
-            id={user._id}
-            name={user.displayName}
-            bio={user.bio}
+            _id={user._id}
+            displayName={name}
+            bio={bio}
+            onChangeDisplayName={setName}
+            onChangeBio={setBio}
             createdAt={user.createdAt}
             lastOnline={user.lastOnline}
             isOnline={user.isOnline}
+            email={user.email}
+            birthDate={user.birthDate}
+            isEdit = {isEdit}
           />
           )}
-          */}
+            <Pressable style = {style.editbutton} onPress={handleEdit}><Text>{isEdit ? 'Done' : 'Edit'}</Text></Pressable>
+            <Pressable style = {style.logoutbutton} onPress={logout}><Text>Log Out</Text></Pressable>
+          </ScrollView>
+
          
     </>
   );
@@ -46,8 +83,8 @@ const style = StyleSheet.create({
     header:{
         justifyContent: 'flex-end', alignItems: 'center',
         width:'100%',
-        height:'30%',
         backgroundColor:'rgb(55, 50, 50)',
+        height:'30%'
     },
     profile:{
     width:80,
@@ -56,16 +93,32 @@ const style = StyleSheet.create({
     backgroundColor:'gray',
     justifyContent: 'center',
     alignItems: 'center',
+    gap:15,
     },
     body:{
-        height:'70%',
-        backgroundColor:'black',
+      flex:1,
+      backgroundColor:'black',
     },
-    button:{
+    bodyContent:{
+      padding:10,
+      gap:15,
+      alignItems:'center',
+      flexGrow:1,
+    },
+    editbutton:{
         padding:15,
+        alignItems:'center',
+        backgroundColor:'blue',
+        borderRadius:8,
+        width:'70%',
+        marginTop:15,
+    },
+    logoutbutton:{
+        padding:15,
+        alignItems:'center',
         backgroundColor:'red',
         borderRadius:8,
-        width:'100%',
+        width:'70%',
         marginTop:15,
     },
 })

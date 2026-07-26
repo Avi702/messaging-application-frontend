@@ -3,26 +3,31 @@ import * as SecureStore from 'expo-secure-store'
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL
 
-type PublicUser = {
+// The logged in user's own record, including private fields only they can see
+type PrivateUser = {
     _id: string
     displayName: string
+    bio: string
     createdAt: string
     lastOnline: string
     isOnline: boolean
+    email: string
+    birthDate: string
 }
 
 type AuthContextType = {
-    user: PublicUser | null
+    user: PrivateUser | null
     isAuthenticated: boolean
     loading: boolean
     login: (email: string, password: string) => Promise<void>
     logout: () => Promise<void>
+    updateProfile: (displayName: string, bio: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }){
-    const [user, setUser] = useState<PublicUser | null>(null)
+    const [user, setUser] = useState<PrivateUser | null>(null)
     const [loading, setLoading] = useState(true)
 
 
@@ -99,6 +104,23 @@ export function AuthProvider({ children }: { children: ReactNode }){
         setUser(body.user)
     }
 
+    async function updateProfile(displayName: string, bio: string){
+        const accessToken = await SecureStore.getItemAsync('accessToken')
+        const res = await fetch(`${API_URL}/api/v1/users/updateProfile`,{
+            method:'POST',
+            headers:{
+                'Content-Type':'application/json',
+                Authorization: `Bearer ${accessToken}`,
+            },
+            body: JSON.stringify({ displayName, bio })
+        })
+        if(!res.ok){
+            const body = await res.json()
+            throw new Error(body?.error?.code || 'UPDATE_FAILED')
+        }
+        setUser(prev => prev ? { ...prev, displayName, bio } : prev)
+    }
+
     async function logout(){
         await SecureStore.deleteItemAsync('accessToken')
         await SecureStore.deleteItemAsync('refreshToken')
@@ -106,7 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }){
     }
 
     return (
-        <AuthContext.Provider value={{ user, isAuthenticated: !!user, loading, login, logout }}>
+        <AuthContext.Provider value={{ user, isAuthenticated: !!user, loading, login, logout, updateProfile }}>
             {children}
         </AuthContext.Provider>
     )
