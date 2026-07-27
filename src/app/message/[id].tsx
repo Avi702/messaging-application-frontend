@@ -7,6 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function Message() {
     const { id, name } = useLocalSearchParams()
     const router = useRouter()
+    const label = typeof name === 'string' ? name : ''
     return (
         <>
             <Stack.Screen options={{headerShown: false }} />
@@ -15,9 +16,9 @@ export default function Message() {
                 <Text style = {{alignSelf:'flex-start',justifyContent:'flex-start', color:'lightblue', fontSize:15}}>Go Back</Text>
                 </Pressable>
                 <View style={style.profile}>
-                        <Text style={{ color: 'white', fontSize: 30, alignSelf: 'center', justifyContent:'center'}}>{name[0].toUpperCase()}</Text>
+                        <Text style={{ color: 'white', fontSize: 30, alignSelf: 'center', justifyContent:'center'}}>{label ? label[0].toUpperCase() : '?'}</Text>
                 </View>
-                <Text style ={{alignSelf: 'center', color:'white',fontSize:25,}}>{name}</Text>
+                <Text style ={{alignSelf: 'center', color:'white',fontSize:25,}}>{label}</Text>
             </View>
             <SafeAreaView style={{ padding:10, height: '78%',backgroundColor: 'black' }}>
                 <ScrollView>

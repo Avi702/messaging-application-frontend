@@ -4,8 +4,9 @@ import {FontAwesome} from '@expo/vector-icons'
 import Chat from '../../components/Chat'
 import {useAuth} from '../Authentication/AuthContext'
 import LogIn from "../../app/Authentication/LogIn"
-
+import {useRouter} from 'expo-router'
 export default function Index(){
+  const router = useRouter()
   const { user, isAuthenticated, logout } = useAuth()
     if (!isAuthenticated){
       return (<LogIn />)
@@ -24,7 +25,7 @@ export default function Index(){
         {/*<Chat id={user.id} title={users} last_message={c.last_message}/>*/}
       </ScrollView>
       {/* Search for new users with no existing conversation */}
-      <Pressable style={styles.fab} onPress={() => {console.log("Clicked")}}>
+      <Pressable style={styles.fab} onPress={() => router.push(`/message/FindUsers`)}>
         <FontAwesome name="plus" size={24} color="white" />
       </Pressable>
     </SafeAreaView>
