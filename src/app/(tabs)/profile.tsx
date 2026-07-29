@@ -33,7 +33,6 @@ export default function Profile() {
 
   async function handleEdit(){
     if(isEdit){
-      // currently editing -> save before leaving edit mode
       try{
         await updateProfile(name, bio)
       } catch {

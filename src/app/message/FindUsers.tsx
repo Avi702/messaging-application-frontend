@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, StyleSheet, TextInput, Pressable} from 'react-native'
+import { View, Alert, Text, ScrollView, StyleSheet, TextInput, Pressable} from 'react-native'
 import { Stack, useRouter } from "expo-router";
 import { useLocalSearchParams } from 'expo-router';
 import {FontAwesome} from '@expo/vector-icons'
@@ -17,13 +17,35 @@ type PublicUser = {
     isOnline: boolean
 }
 
+
 export default function FindUsers(){
     const router = useRouter()
     const [query, setQuery] = useState('')
     const [results, setResults] = useState<PublicUser[]>([])
     const { user, isAuthenticated, logout} = useAuth()
     const [selected, setSelected] = useState<PublicUser[]>([])
-
+    async function createChat(){
+        if (selected.length === 0) { Alert.alert('Add at least one user'); return }
+        const members = selected.map(s => s._id)
+        const title = members.length > 1 ? selected.map(s => s.displayName).join(', ').slice(0, 64) : undefined
+        const token = await SecureStore.getItemAsync('accessToken')
+        const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/v1/messaging/createChat`,{
+            method:'POST',
+            headers:{
+                'Content-Type':'application/json',
+                 Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(title ? { title, members } : { members }),
+        })
+        if (!res.ok){
+            Alert.alert('Could not create chat'); 
+            return
+        }
+        const chat = await res.json()
+        const label = members.length > 1 ? chat.title : selected[0].displayName
+        router.replace(`/message/${chat._id}?name=${encodeURIComponent(label)}`)
+        
+    }
     useEffect(() => {
         if(!query.trim()){
             setResults([]);
@@ -68,9 +90,9 @@ export default function FindUsers(){
     </ScrollView>
     <View style = {style.footer}>
         {selected.map((v) =>
-            <Text key = {v._id} style={{ color: 'white' }}>{v.displayName}</Text>)}
-            <Pressable style={style.add}>
-                            <FontAwesome name="arrow-right" size={20} color="white" />
+            <Text key = {v._id} style={{ color: 'white' }}>{v.displayName} ,</Text>)}
+            <Pressable style={style.add} onPress={()=>createChat()}>
+                            <FontAwesome name="arrow-right" size={40} color="white" />
                         </Pressable>
     </View>
 
@@ -117,9 +139,9 @@ footer:{
 },
 add:{
         backgroundColor:'blue',
-        borderRadius:20,
-        width:36,
-        height:36,
+        borderRadius:50,
+        width:55,
+        height:55,
         justifyContent:'center',
         alignItems:'center',
         marginLeft:'auto',

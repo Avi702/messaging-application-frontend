@@ -11,6 +11,12 @@ interface ChatProps {
   owner: string
   members: string[]
 }
+function formatDateTime(value: string){
+    if(!value){
+        return "—"
+    }
+    return new Date(value).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })
+}
 
 export default function Chat({id, title, createdAt, owner, members}:ChatProps){
     const router = useRouter()
@@ -56,7 +62,7 @@ export default function Chat({id, title, createdAt, owner, members}:ChatProps){
             <Text style={{color: 'white', fontSize: 25, alignSelf:'flex-start'}}>{label}</Text>
         </View>
     </View>
-    <Text style={{ color: 'gray', fontSize: 12, marginLeft: 'auto' }}>{createdAt}</Text>
+    <Text style={{ color: 'gray', fontSize: 12, marginLeft: 'auto' }}>{formatDateTime(createdAt)}</Text>
 </Pressable>
 )
 }

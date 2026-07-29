@@ -5,9 +5,38 @@ import Chat from '../../components/Chat'
 import {useAuth} from '../Authentication/AuthContext'
 import LogIn from "../../app/Authentication/LogIn"
 import {useRouter} from 'expo-router'
+import { useFocusEffect } from 'expo-router'
+import { useCallback } from 'react'
+import * as SecureStore from 'expo-secure-store'
+import {useState, useEffect} from 'react'
+
+type Conversation = {
+  _id: string
+  title: string
+  createdAt: string
+  owner: string
+  members: string[]
+}
+
 export default function Index(){
   const router = useRouter()
   const { user, isAuthenticated, logout } = useAuth()
+  const [conversations, setConversations] = useState<Conversation[]>([])
+  const [search, setSearch] = useState('')
+  useFocusEffect(useCallback(() => {
+      let active = true
+      async function load(){
+        const token = await SecureStore.getItemAsync('accessToken')
+        const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/v1/messaging/getChats`, {
+          method: 'POST',
+          headers: { 'Content-Type':'application/json', Authorization: `Bearer ${token}` },
+        })
+        if (res.ok && active) setConversations(await res.json())
+      }
+      load()
+      return () => { active = false }
+    }, []))
+
     if (!isAuthenticated){
       return (<LogIn />)
   }
@@ -15,14 +44,23 @@ export default function Index(){
     <SafeAreaView style={styles.container}>
       {/* Search for existing conversations/users */}
       <View style = {styles.search}>
-        <TextInput style = {styles.input} placeholder = 'Search'></TextInput>
+        <TextInput style = {styles.input} value={search} onChangeText={setSearch} placeholder = 'Search'></TextInput>
         <Pressable onPress={() => {console.log("Clicked")}}>
           <FontAwesome name ="search" size={19} color='white'/></Pressable>
       </View>
       <Text style = {{color:'white', fontSize: 35, alignSelf: 'flex-start', padding:15}}>Conversations</Text>
       <ScrollView contentContainerStyle={{ alignItems: 'center' }}>
         {/*Props for all conversations using conversation card */}
-        {/*<Chat id={user.id} title={users} last_message={c.last_message}/>*/}
+        {conversations.filter((c) => c.title.toLowerCase().includes(search.toLowerCase())).map((c) => (
+          <Chat
+            key={c._id}
+            id={c._id}
+            title={c.title}
+            createdAt={c.createdAt}
+            owner={c.owner}
+            members={c.members}
+          />
+        ))}
       </ScrollView>
       {/* Search for new users with no existing conversation */}
       <Pressable style={styles.fab} onPress={() => router.push(`/message/FindUsers`)}>

@@ -54,7 +54,7 @@ export default function ViewContent({_id, displayName, email, birthDate, bio, cr
         </View>
 
 
-        <Text style={style.section}>Recently Chatted</Text>
+        {/*<Text style={style.section}>Recently Chatted</Text>*/}
     </View>
 )
 }
