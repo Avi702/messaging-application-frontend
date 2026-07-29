@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react'
 import * as SecureStore from 'expo-secure-store'
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL
@@ -22,6 +22,10 @@ type AuthContextType = {
     login: (email: string, password: string) => Promise<void>
     logout: () => Promise<void>
     updateProfile: (displayName: string, bio: string) => Promise<void>
+    // authenticated POST that refreshes the access token once if it has expired
+    authFetch: (path: string, body?: any) => Promise<Response>
+    // gets a usable access token, refreshing it first if it has expired
+    getValidToken: () => Promise<string | null>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -29,6 +33,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }){
     const [user, setUser] = useState<PrivateUser | null>(null)
     const [loading, setLoading] = useState(true)
+    // holds an in flight refresh so simultaneous 401s only refresh once
+    const refreshing = useRef<Promise<string | null> | null>(null)
 
 
     useEffect(()=>{
@@ -69,24 +75,87 @@ export function AuthProvider({ children }: { children: ReactNode }){
     }
 
     async function tryRefresh(){
-        const refreshToken = await SecureStore.getItemAsync('refreshToken')
-        if(!refreshToken){
-            setUser(null)
+        const accessToken = await refreshTokens()
+        if(!accessToken){
             return
         }
-        const res = await fetch(`${API_URL}/api/v1/authentication/refresh`,{
+        await authenticate(accessToken)
+    }
+
+    // swaps the refresh token for a new pair; returns the new access token or null.
+    // shared through a ref so several 401s at once only cause one refresh
+    async function refreshTokens(): Promise<string | null> {
+        if(refreshing.current){
+            return await refreshing.current
+        }
+        refreshing.current = (async () => {
+            const refreshToken = await SecureStore.getItemAsync('refreshToken')
+            if(!refreshToken){
+                return null
+            }
+            const res = await fetch(`${API_URL}/api/v1/authentication/refresh`,{
+                method:'POST',
+                headers:{ 'Content-Type':'application/json' },
+                body: JSON.stringify({ refreshToken })
+            })
+            if(!res.ok){
+                return null
+            }
+            const tokens = await res.json()
+            await SecureStore.setItemAsync('accessToken', tokens.accessToken)
+            await SecureStore.setItemAsync('refreshToken', tokens.refreshToken)
+            return tokens.accessToken as string
+        })()
+        const accessToken = await refreshing.current
+        refreshing.current = null
+        if(!accessToken){
+            // the refresh token is gone or expired too, so the session is over
+            await logout()
+        }
+        return accessToken
+    }
+
+    function postWithToken(path: string, body: any, token: string | null){
+        return fetch(`${API_URL}${path}`,{
+            method:'POST',
+            headers:{
+                'Content-Type':'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(body ?? {})
+        })
+    }
+
+    // this used for every locked route instead of fetch
+    async function authFetch(path: string, body?: any): Promise<Response> {
+        const token = await SecureStore.getItemAsync('accessToken')
+        const res = await postWithToken(path, body, token)
+        if(res.status !== 401){
+            return res
+        }
+        // the access token expired, so refresh once and try the request again
+        const newToken = await refreshTokens()
+        if(!newToken){
+            return res
+        }
+        return await postWithToken(path, body, newToken)
+    }
+
+    // the socket authenticates on connect, so it needs a token known to be good
+    async function getValidToken(): Promise<string | null> {
+        const accessToken = await SecureStore.getItemAsync('accessToken')
+        if(!accessToken){
+            return null
+        }
+        const res = await fetch(`${API_URL}/api/v1/authentication/authenticate`,{
             method:'POST',
             headers:{ 'Content-Type':'application/json' },
-            body: JSON.stringify({ refreshToken })
+            body: JSON.stringify({ accessToken })
         })
-        if(!res.ok){
-            await logout()
-            return
+        if(res.ok){
+            return accessToken
         }
-        const tokens = await res.json()
-        await SecureStore.setItemAsync('accessToken', tokens.accessToken)
-        await SecureStore.setItemAsync('refreshToken', tokens.refreshToken)
-        await authenticate(tokens.accessToken)
+        return await refreshTokens()
     }
 
     async function login(email: string, password: string){
@@ -105,15 +174,7 @@ export function AuthProvider({ children }: { children: ReactNode }){
     }
 
     async function updateProfile(displayName: string, bio: string){
-        const accessToken = await SecureStore.getItemAsync('accessToken')
-        const res = await fetch(`${API_URL}/api/v1/users/updateProfile`,{
-            method:'POST',
-            headers:{
-                'Content-Type':'application/json',
-                Authorization: `Bearer ${accessToken}`,
-            },
-            body: JSON.stringify({ displayName, bio })
-        })
+        const res = await authFetch('/api/v1/users/updateProfile', { displayName, bio })
         if(!res.ok){
             const body = await res.json()
             throw new Error(body?.error?.code || 'UPDATE_FAILED')
@@ -128,7 +189,7 @@ export function AuthProvider({ children }: { children: ReactNode }){
     }
 
     return (
-        <AuthContext.Provider value={{ user, isAuthenticated: !!user, loading, login, logout, updateProfile }}>
+        <AuthContext.Provider value={{ user, isAuthenticated: !!user, loading, login, logout, updateProfile, authFetch, getValidToken }}>
             {children}
         </AuthContext.Provider>
     )

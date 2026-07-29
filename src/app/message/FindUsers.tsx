@@ -4,7 +4,6 @@ import { useLocalSearchParams } from 'expo-router';
 import {FontAwesome} from '@expo/vector-icons'
 import { SafeAreaView } from "react-native-safe-area-context";
 import {useState, useEffect} from 'react'
-import * as SecureStore from 'expo-secure-store'
 import {useAuth} from '../Authentication/AuthContext'
 import UserCard from '../../components/UserCard'
 
@@ -22,21 +21,13 @@ export default function FindUsers(){
     const router = useRouter()
     const [query, setQuery] = useState('')
     const [results, setResults] = useState<PublicUser[]>([])
-    const { user, isAuthenticated, logout} = useAuth()
+    const { user, isAuthenticated, logout, authFetch} = useAuth()
     const [selected, setSelected] = useState<PublicUser[]>([])
     async function createChat(){
         if (selected.length === 0) { Alert.alert('Add at least one user'); return }
         const members = selected.map(s => s._id)
         const title = members.length > 1 ? selected.map(s => s.displayName).join(', ').slice(0, 64) : undefined
-        const token = await SecureStore.getItemAsync('accessToken')
-        const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/v1/messaging/createChat`,{
-            method:'POST',
-            headers:{
-                'Content-Type':'application/json',
-                 Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify(title ? { title, members } : { members }),
-        })
+        const res = await authFetch('/api/v1/messaging/createChat', title ? { title, members } : { members })
         if (!res.ok){
             Alert.alert('Could not create chat'); 
             return
@@ -52,12 +43,7 @@ export default function FindUsers(){
             return
         }
         const timer = setTimeout(async () => {
-        const token = await SecureStore.getItemAsync('accessToken')
-        const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/v1/users/searchUsers`, {
-        method: 'POST',
-        headers: { 'Content-Type':'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ query: query.trim() }),
-        })
+        const res = await authFetch('/api/v1/users/searchUsers', { query: query.trim() })
         if (res.ok){
             setResults(await res.json())
         }},300)
@@ -81,16 +67,23 @@ export default function FindUsers(){
                 _id={u._id}
                 displayName={u.displayName}
                 bio={u.bio}
+                isOnline={u.isOnline}
+                added={selected.some(s => s._id === u._id)}
                 onAdd={() => setSelected(prev =>
-                    prev.some(s => s._id === u._id) ? prev : [...prev, u]
+                    prev.some(s => s._id === u._id) ? prev.filter(s => s._id !== u._id) : [...prev, u]
                 )}
 
             />
             ))}
+        {query.trim() !== '' && results.length === 0 && (
+            <Text style={style.empty}>No users found</Text>
+        )}
     </ScrollView>
     <View style = {style.footer}>
         {selected.map((v) =>
-            <Text key = {v._id} style={{ color: 'white' }}>{v.displayName} ,</Text>)}
+            <Pressable key = {v._id} onPress={() => setSelected(prev => prev.filter(s => s._id !== v._id))}>
+                <Text style={{ color: 'white' }}>{v.displayName} X  </Text>
+            </Pressable>)}
             <Pressable style={style.add} onPress={()=>createChat()}>
                             <FontAwesome name="arrow-right" size={40} color="white" />
                         </Pressable>
@@ -110,6 +103,12 @@ const style = StyleSheet.create({
     header:{
         flex:1,
         backgroundColor:'black',
+    },
+    empty:{
+        color:'gray',
+        fontSize:16,
+        alignSelf:'center',
+        marginTop:40,
     },
     search: {
   flex: 1,

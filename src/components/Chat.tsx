@@ -1,7 +1,6 @@
 import {StyleSheet, View, Text, Pressable} from 'react-native'
 import {useState, useEffect} from 'react'
 import {useRouter} from 'expo-router'
-import * as SecureStore from 'expo-secure-store'
 import {useAuth} from '../app/Authentication/AuthContext'
 
 interface ChatProps {
@@ -20,8 +19,9 @@ function formatDateTime(value: string){
 
 export default function Chat({id, title, createdAt, owner, members}:ChatProps){
     const router = useRouter()
-    const {user} = useAuth()
+    const {user, authFetch} = useAuth()
     const [otherName, setOtherName] = useState('')
+    const [otherOnline, setOtherOnline] = useState(false)
 
     const isDm = members.length === 1
 
@@ -32,18 +32,11 @@ export default function Chat({id, title, createdAt, owner, members}:ChatProps){
         async function loadOtherUser(){
             // the other person is the owner, unless we are the owner (then members[0])
             const otherId = owner === user?._id ? members[0] : owner
-            const token = await SecureStore.getItemAsync('accessToken')
-            const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/v1/users/getUserById`,{
-                method:'POST',
-                headers:{
-                    'Content-Type':'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({ userId: otherId })
-            })
+            const res = await authFetch('/api/v1/users/getUserById', { userId: otherId })
             if(res.ok){
                 const publicUser = await res.json()
                 setOtherName(publicUser.displayName)
+                setOtherOnline(publicUser.isOnline)
             }
         }
         loadOtherUser()
@@ -54,8 +47,11 @@ export default function Chat({id, title, createdAt, owner, members}:ChatProps){
 
     return (
     <Pressable style={style.container} onPress={()=>router.push(`/message/${id}?name=${encodeURIComponent(label)}`)}>
-    <View style={style.profile}>
-        <Text style={{ color: 'white', fontSize: 30 }}>{label ? label[0].toUpperCase() : '?'}</Text>
+    <View>
+        <View style={style.profile}>
+            <Text style={{ color: 'white', fontSize: 30 }}>{label ? label[0].toUpperCase() : '?'}</Text>
+        </View>
+        {isDm && otherOnline ? <View style={style.onlineDot} /> : null}
     </View>
     <View style={style.meta}>
         <View style={style.name}>
@@ -83,6 +79,17 @@ const style = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     },
+  onlineDot:{
+    position:'absolute',
+    right:2,
+    bottom:2,
+    width:18,
+    height:18,
+    borderRadius:9,
+    backgroundColor:'limegreen',
+    borderWidth:2,
+    borderColor:'black',
+  },
   meta:{
     flexDirection:'column',
     paddingHorizontal:20,

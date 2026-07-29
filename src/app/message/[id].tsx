@@ -4,7 +4,6 @@ import { useLocalSearchParams } from 'expo-router';
 import {FontAwesome} from '@expo/vector-icons'
 import { SafeAreaView } from "react-native-safe-area-context";
 import {useState, useEffect, useRef} from 'react'
-import * as SecureStore from 'expo-secure-store'
 import {useAuth} from '../Authentication/AuthContext'
 import { io, Socket } from 'socket.io-client'
 
@@ -17,7 +16,7 @@ type Message = {
 export default function Message() {
     const { id, name } = useLocalSearchParams()
     const router = useRouter()
-    const { user } = useAuth()
+    const { user, authFetch, getValidToken } = useAuth()
     const chatId = typeof id === 'string' ? id : ''
     const label = typeof name === 'string' ? name : ''
 
@@ -37,12 +36,7 @@ export default function Message() {
             return
         }
         async function loadChat(){
-            const token = await SecureStore.getItemAsync('accessToken')
-            const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/v1/messaging/getChat`,{
-                method:'POST',
-                headers:{ 'Content-Type':'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify({ chatId })
-            })
+            const res = await authFetch('/api/v1/messaging/getChat', { chatId })
             if(res.ok){
                 const chat = await res.json()
                 setOwner(chat.owner)
@@ -59,10 +53,16 @@ export default function Message() {
         let socket: Socket | null = null
         let cancelled = false
         async function connect(){
-            const token = await SecureStore.getItemAsync('accessToken')
+            // refreshes the token first if it expired, otherwise the socket is rejected
+            const token = await getValidToken()
             if (cancelled) return
+            if (!token){
+                Alert.alert('Your session expired, please log in again')
+                return
+            }
             socket = io(process.env.EXPO_PUBLIC_API_URL, { auth:{ token }, transports:['websocket'] })
             socketRef.current = socket
+            socket.on('connect_error', () => { if (!cancelled) Alert.alert('Lost connection to the chat') })
             socket.emit('chat:open', { chatId })
             socket.emit('message:get', { chatId })
             socket.on('reply:message:get', (res) => { if (res.success) setMessages(res.messages) })
@@ -87,13 +87,8 @@ export default function Message() {
         }
         let cancelled = false
         async function resolve(){
-            const token = await SecureStore.getItemAsync('accessToken')
             const entries = await Promise.all(unknown.map(async (senderId) => {
-                const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/v1/users/getUserById`,{
-                    method:'POST',
-                    headers:{ 'Content-Type':'application/json', Authorization: `Bearer ${token}` },
-                    body: JSON.stringify({ userId: senderId })
-                })
+                const res = await authFetch('/api/v1/users/getUserById', { userId: senderId })
                 return res.ok ? [senderId, (await res.json()).displayName] as const : null
             }))
             if(cancelled){
@@ -133,12 +128,7 @@ export default function Message() {
             Alert.alert('Title must be between 3 and 64 characters')
             return
         }
-        const token = await SecureStore.getItemAsync('accessToken')
-        const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/v1/messaging/updateChatInformation`,{
-            method:'POST',
-            headers:{ 'Content-Type':'application/json', Authorization: `Bearer ${token}` },
-            body: JSON.stringify({ chatId, title })
-        })
+        const res = await authFetch('/api/v1/messaging/updateChatInformation', { chatId, title })
         if(!res.ok){
             Alert.alert('Could not update the chat')
             return

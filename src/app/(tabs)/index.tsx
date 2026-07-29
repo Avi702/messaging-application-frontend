@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet, TextInput, Pressable, ScrollView} from "react-native";
+import { Text, View, StyleSheet, TextInput, Pressable, ScrollView, ActivityIndicator} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {FontAwesome} from '@expo/vector-icons'
 import Chat from '../../components/Chat'
@@ -7,7 +7,6 @@ import LogIn from "../../app/Authentication/LogIn"
 import {useRouter} from 'expo-router'
 import { useFocusEffect } from 'expo-router'
 import { useCallback } from 'react'
-import * as SecureStore from 'expo-secure-store'
 import {useState, useEffect} from 'react'
 
 type Conversation = {
@@ -20,26 +19,38 @@ type Conversation = {
 
 export default function Index(){
   const router = useRouter()
-  const { user, isAuthenticated, logout } = useAuth()
+  const { user, isAuthenticated, loading, logout, authFetch } = useAuth()
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [search, setSearch] = useState('')
   useFocusEffect(useCallback(() => {
       let active = true
       async function load(){
-        const token = await SecureStore.getItemAsync('accessToken')
-        const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/v1/messaging/getChats`, {
-          method: 'POST',
-          headers: { 'Content-Type':'application/json', Authorization: `Bearer ${token}` },
-        })
-        if (res.ok && active) setConversations(await res.json())
+        const res = await authFetch('/api/v1/messaging/getChats')
+        if (res.ok && active){
+          const chats: Conversation[] = await res.json()
+          // newest chats first
+          chats.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          setConversations(chats)
+        }
       }
       load()
       return () => { active = false }
     }, []))
 
+    // wait for the startup token check so we do not flash the login screen
+    if (loading){
+      return (
+        <View style={styles.loading}>
+          <ActivityIndicator color="white" />
+        </View>
+      )
+    }
+
     if (!isAuthenticated){
       return (<LogIn />)
   }
+
+  const visible = conversations.filter((c) => c.title.toLowerCase().includes(search.toLowerCase()))
   return (
     <SafeAreaView style={styles.container}>
       {/* Search for existing conversations/users */}
@@ -51,7 +62,7 @@ export default function Index(){
       <Text style = {{color:'white', fontSize: 35, alignSelf: 'flex-start', padding:15}}>Conversations</Text>
       <ScrollView contentContainerStyle={{ alignItems: 'center' }}>
         {/*Props for all conversations using conversation card */}
-        {conversations.filter((c) => c.title.toLowerCase().includes(search.toLowerCase())).map((c) => (
+        {visible.map((c) => (
           <Chat
             key={c._id}
             id={c._id}
@@ -61,6 +72,9 @@ export default function Index(){
             members={c.members}
           />
         ))}
+        {visible.length === 0 && (
+          <Text style={styles.empty}>{search ? 'No conversations found' : 'No conversations yet'}</Text>
+        )}
       </ScrollView>
       {/* Search for new users with no existing conversation */}
       <Pressable style={styles.fab} onPress={() => router.push(`/message/FindUsers`)}>
@@ -93,6 +107,17 @@ input: {
   flex: 1,
   color: 'white',
   marginLeft: 8,
+},
+loading:{
+  flex: 1,
+  backgroundColor: 'black',
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+empty:{
+  color: 'gray',
+  fontSize: 16,
+  marginTop: 40,
 },
 fab:{
   position: 'absolute',

@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet, TextInput, Pressable, ScrollView, Alert} from "react-native";
+import { Text, View, StyleSheet, TextInput, Pressable, ScrollView, Alert, ActivityIndicator} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {FontAwesome} from '@expo/vector-icons'
 import {useState, useEffect} from 'react'
@@ -14,7 +14,7 @@ function formatDateTime(value: string){
 }
 
 export default function Profile() {
-  const { user, isAuthenticated, logout, updateProfile } = useAuth()
+  const { user, isAuthenticated, loading, logout, updateProfile } = useAuth()
   const [isEdit,setEdit] = useState(false)
   const [name,setName] = useState('')
   const [bio,setBio] = useState('')
@@ -26,6 +26,15 @@ export default function Profile() {
       setBio(user.bio)
     }
   },[user])
+
+  // wait for the startup token check so we do not flash the login screen
+  if (loading){
+    return (
+      <View style={style.loading}>
+        <ActivityIndicator color="white" />
+      </View>
+    )
+  }
 
   if (!isAuthenticated || !user){
     return (<LogIn />)
@@ -93,6 +102,12 @@ const style = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap:15,
+    },
+    loading:{
+      flex:1,
+      backgroundColor:'black',
+      justifyContent:'center',
+      alignItems:'center',
     },
     body:{
       flex:1,
