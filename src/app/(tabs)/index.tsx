@@ -7,7 +7,7 @@ import LogIn from "../../app/Authentication/LogIn"
 import {useRouter} from 'expo-router'
 import { useFocusEffect } from 'expo-router'
 import { useCallback } from 'react'
-import {useState, useEffect} from 'react'
+import {useState} from 'react'
 
 type Conversation = {
   _id: string
@@ -19,7 +19,7 @@ type Conversation = {
 
 export default function Index(){
   const router = useRouter()
-  const { user, isAuthenticated, loading, logout, authFetch } = useAuth()
+  const { isAuthenticated, loading, authFetch } = useAuth()
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [search, setSearch] = useState('')
   useFocusEffect(useCallback(() => {

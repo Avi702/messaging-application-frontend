@@ -1,6 +1,5 @@
 import { View, Alert, Text, ScrollView, StyleSheet, TextInput, Pressable} from 'react-native'
 import { Stack, useRouter } from "expo-router";
-import { useLocalSearchParams } from 'expo-router';
 import {FontAwesome} from '@expo/vector-icons'
 import { SafeAreaView } from "react-native-safe-area-context";
 import {useState, useEffect} from 'react'
@@ -21,7 +20,7 @@ export default function FindUsers(){
     const router = useRouter()
     const [query, setQuery] = useState('')
     const [results, setResults] = useState<PublicUser[]>([])
-    const { user, isAuthenticated, logout, authFetch} = useAuth()
+    const { authFetch } = useAuth()
     const [selected, setSelected] = useState<PublicUser[]>([])
     async function createChat(){
         if (selected.length === 0) { Alert.alert('Add at least one user'); return }

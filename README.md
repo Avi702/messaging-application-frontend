@@ -1,56 +1,104 @@
-# Welcome to your Expo app 👋
+# Messaging Application Frontend
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+This is the frontend for a messaging application project that I'm working on with Michael Rothkopf and Mohnish Pothineni. It is an [Expo](https://expo.dev) (React Native) app written in TypeScript.
 
-## Get started
+For the backend, please see [tdcdhe corresponding repository](https://github.com/michaelrothkopf/messaging-application-u26-backend) and my fork
+version (https://github.com/Avi702/avneet-michael-messaging-backend)
 
-1. Install dependencies
+## About the Application
 
-   ```bash
-   npm install
-   ```
+The app lets a user register an account, log in, find other users, start direct or group chats, and send messages in real time.
 
-2. Start the app
+### Features
 
-   ```bash
-   npx expo start
-   ```
+- **Authentication** with JWT access and refresh tokens, stored securely on the device with `expo-secure-store`. The access token is refreshed automatically when it expires.
+- **Profile** viewing and editing, including a display name and bio. Private fields (email and birth date) are only ever visible to the account owner.
+- **User search** by display name, with results updating as you type.
+- **Chats**, either direct (two people) or group. Group owners can rename the chat.
+- **Live messaging** over socket.IO, so new messages appear without refreshing.
 
-In the output, you'll find options to open the app in a
+### Structure
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+Routing is file based via [expo-router](https://docs.expo.dev/router/introduction); every file in `src/app` is a route.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+| Path | Purpose |
+| --- | --- |
+| `src/app/_layout.tsx` | Root layout; wraps the app in the authentication provider |
+| `src/app/Authentication/AuthContext.tsx` | Global auth state, token storage and refresh, and the `authFetch` helper |
+| `src/app/Authentication/LogIn.tsx` | Log in screen |
+| `src/app/Authentication/SignUp.tsx` | Registration screen |
+| `src/app/(tabs)/index.tsx` | Conversation list |
+| `src/app/(tabs)/Profile.tsx` | The logged in user's profile |
+| `src/app/message/[id].tsx` | A single chat, including the socket connection |
+| `src/app/message/FindUsers.tsx` | User search and new chat creation |
+| `src/components/` | Shared components (`Chat`, `UserCard`, `ViewContent`) |
 
-## Get a fresh project
+### Talking to the Backend
 
-When you're ready, run:
+Every locked route is called through `authFetch` from the authentication context. It attaches the access token, and if the backend replies `401` it refreshes the token once and retries the request, so a session does not break after the access token expires.
 
+The chat screen connects to socket.IO separately, passing a token that has been validated (and refreshed if needed) beforehand.
+
+## Get Started
+
+### Environment Variables
+
+Before starting the app, you must copy the `.env.example` file into `.env.local` and edit the options.
+
+The options are as follows:
+
+#### EXPO_PUBLIC_API_URL (required)
+
+The base URL of the backend, with no trailing slash, for example `http://localhost:3000`.
+
+Expo only exposes variables that begin with `EXPO_PUBLIC_`, so the name must be kept exactly. Note that this value is bundled into the app and is therefore visible to anyone who inspects it, so no secrets belong here.
+
+The correct host depends on where the app is running:
+
+| Target | Value |
+| --- | --- |
+| iOS simulator | `http://localhost:3000` |
+| Web | `http://localhost:3000` |
+| Android emulator | `http://10.0.2.2:3000` |
+| A physical device | `http://<your computer's LAN IP>:3000` |
+
+Environment variables are read when the bundler starts, so restart it after changing them.
+
+## Running the App
+
+The backend must be running and reachable at `EXPO_PUBLIC_API_URL` first.
+
+### 1. Install modules
+
+Run the following command to install the modules:
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### 2. Start the app
 
-### Other setup steps
+Run the following command to start the development server:
+```bash
+npm start
+```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+From there you can open the app on a simulator, an emulator, or a physical device through Expo Go.
 
-## Learn more
+To open a target directly, run one of:
+```bash
+npm run ios
+npm run android
+npm run web
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+If a change to the environment or to a dependency does not seem to apply, restart with the cache cleared:
+```bash
+npx expo start -c
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Linting
 
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+To lint the code, run:
+```bash
+npm run lint
+```

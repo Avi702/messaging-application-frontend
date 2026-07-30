@@ -1,6 +1,5 @@
-import { Text, Alert, View, StyleSheet, TextInput, Pressable, ScrollView, ActivityIndicator} from "react-native";
+import { Text, Alert, View, StyleSheet, TextInput, Pressable, ActivityIndicator} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {FontAwesome} from '@expo/vector-icons'
 import {useState} from 'react'
 import { Stack, useRouter} from 'expo-router'
 
@@ -120,13 +119,6 @@ export default function SignUp(){
 }
 
 const style = StyleSheet.create({
-    header:{
-    padding:15,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    width:'100%',
-    backgroundColor:'black',
-},
 container:{
     flex: 1,
     backgroundColor:'black',

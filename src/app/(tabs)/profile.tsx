@@ -1,6 +1,5 @@
-import { Text, View, StyleSheet, TextInput, Pressable, ScrollView, Alert, ActivityIndicator} from "react-native";
+import { Text, View, StyleSheet, Pressable, ScrollView, Alert, ActivityIndicator} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {FontAwesome} from '@expo/vector-icons'
 import {useState, useEffect} from 'react'
 import LogIn from "../../app/Authentication/LogIn"
 import ViewContent from "../../components/ViewContent"

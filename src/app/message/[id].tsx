@@ -2,7 +2,6 @@ import { View, Text, ScrollView, StyleSheet, TextInput, Pressable, Alert} from '
 import { Stack, useRouter } from "expo-router";
 import { useLocalSearchParams } from 'expo-router';
 import {FontAwesome} from '@expo/vector-icons'
-import { SafeAreaView } from "react-native-safe-area-context";
 import {useState, useEffect, useRef} from 'react'
 import {useAuth} from '../Authentication/AuthContext'
 import { io, Socket } from 'socket.io-client'

@@ -11,7 +11,7 @@ interface UserCardProps {
     onAdd: () => void
 }
 
-export default function UserCard({ _id, displayName, email, bio, isOnline, added, onAdd }: UserCardProps){
+export default function UserCard({ displayName, email, bio, isOnline, added, onAdd }: UserCardProps){
     return (
         <View style={style.container}>
             <View>

@@ -1,9 +1,6 @@
-import { Text, Alert, View, StyleSheet, TextInput, Pressable, ScrollView} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import {FontAwesome} from '@expo/vector-icons'
+import { Text, Alert, View, StyleSheet, TextInput, Pressable} from "react-native";
 import {useState} from 'react'
 import {useRouter} from 'expo-router'
-import * as SecureStore from 'expo-secure-store'
 import {useAuth} from '../Authentication/AuthContext'
 export default function LogIn(){
     const {login} = useAuth()
@@ -43,12 +40,6 @@ export default function LogIn(){
 }
 
 const style = StyleSheet.create({
-    header:{
-        padding:10,
-        flex: 1, justifyContent: 'flex-end', alignItems: 'center',
-        width:'100%',
-        height:'22%',
-    },
     container:{
         height:'100%',
         backgroundColor:'black',

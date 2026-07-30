@@ -22,7 +22,7 @@ interface DropDown{
     onChangeDisplayName: (text: string) => void
     onChangeBio: (text: string) => void
 }
-export default function ViewContent({_id, displayName, email, birthDate, bio, createdAt, lastOnline, isOnline, isEdit, onChangeDisplayName, onChangeBio}:DropDown){
+export default function ViewContent({displayName, email, birthDate, bio, createdAt, isEdit, onChangeDisplayName, onChangeBio}:DropDown){
     return(<View style={style.container}>
         <View style={style.field}>
             <Text style={style.label}>Display Name</Text>

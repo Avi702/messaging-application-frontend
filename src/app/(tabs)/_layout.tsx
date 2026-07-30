@@ -1,5 +1,3 @@
-import {Image,ImageBackground, StyleSheet, View, Text} from 'react-native'
-import React from 'react'
 import {Tabs} from "expo-router"
 import {FontAwesome} from '@expo/vector-icons'
 export default function _Layout(){
@@ -35,11 +33,3 @@ export default function _Layout(){
         </Tabs>
         )
 }
-
-const styles = StyleSheet.create({
-    container:{
-        flex: 1,
-        alignItems:"flex-end",
-        justifyContent:"flex-end"
-    },
-})
